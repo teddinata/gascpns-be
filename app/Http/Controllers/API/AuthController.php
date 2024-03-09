@@ -80,4 +80,70 @@ class AuthController extends Controller
         return ResponseFormatter::success(
             $user,'Data user berhasil diambil');
     }
+
+    public function login(Request $request)
+    {
+        try {
+            $request->validate([
+                'email_or_username' => 'required|string',
+                'password' => 'required|string',
+            ]);
+
+            $field = filter_var($request->email_or_username, FILTER_VALIDATE_EMAIL) ? 'email' : 'username';
+
+            $credentials = [
+                $field => $request->email_or_username,
+                'password' => $request->password,
+            ];
+
+            if (Auth::attempt($credentials)) {
+                $user = Auth::user();
+                $tokenResult = $user->createToken('authToken')->plainTextToken;
+                $user->last_login = now();
+                $user->save();
+
+                return ResponseFormatter::success([
+                    'access_token' => $tokenResult,
+                    'token_type' => 'Bearer',
+                    'user' => $user,
+                ], 'User logged in successfully');
+            }
+
+            throw ValidationException::withMessages([
+                'auth' => ['The provided credentials are incorrect.'],
+            ]);
+
+        } catch (ValidationException $e) {
+            // Handling validation errors
+            $errors = $e->errors();
+            return ResponseFormatter::error([
+                'message' => 'Validation failed',
+                'errors' => $errors,
+            ], 'Authentication Failed', 422);
+
+        } catch (\Exception $e) {
+            // Handling other exceptions
+            return ResponseFormatter::error([
+                'message' => 'Something went wrong',
+                'error' => $e->getMessage(),
+            ], 'Authentication Failed', 500);
+        }
+    }
+
+    public function logout(Request $request)
+    {
+        try {
+            $user = Auth::user();
+            $user->tokens()->delete();
+
+            return ResponseFormatter::success(null, 'User logged out successfully');
+
+        } catch (\Exception $e) {
+            // Handling other exceptions
+            return ResponseFormatter::error([
+                'message' => 'Something went wrong',
+                'error' => $e->getMessage(),
+            ], 'Logout failed', 500);
+        }
+    }
 }
