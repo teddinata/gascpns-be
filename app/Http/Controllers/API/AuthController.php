@@ -9,6 +9,7 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\ValidationException;
 use App\Helpers\ResponseFormatter;
 use Laravel\Fortify\Rules\Password;
+use Illuminate\Support\Facades\Auth;
 
 
 class AuthController extends Controller

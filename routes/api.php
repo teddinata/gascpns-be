@@ -22,6 +22,8 @@ Route::group(['prefix' => 'v1'], function () {
 
     Route::post('register', [App\Http\Controllers\API\AuthController::class, 'register']);
     Route::post('login', [App\Http\Controllers\API\AuthController::class, 'login']);
+    // logout
+    Route::post('logout', [App\Http\Controllers\API\AuthController::class, 'logout']);
     // end point check user
     Route::get('user', [App\Http\Controllers\API\AuthController::class, 'fetch']);
 
